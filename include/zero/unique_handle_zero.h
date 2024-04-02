@@ -2,53 +2,37 @@
 
 #include <zero/expected.h>
 #include <zero/unique_handle.h>
-#include <zero/concepts.h>
 
 namespace zero {
 
 #if __cplusplus >= 202002L
-template <typename _T, concepts::deleter_for<_T> __deleter_t>
+template <typename _T, typename __deleter_t>
 #else
 template <typename _T, typename __deleter_t>
 #endif
-using unique_handle_zero = unique_handle<expected_zero<_T>, __deleter_t>;
+struct unique_handle_zero: unique_handle<expected_zero<_T>, __deleter_t> {
+  template <typename... _Args>
+  unique_handle_zero(_Args&&... __args) noexcept(std::is_nothrow_constructible_v<unique_handle<expected_zero<_T>, __deleter_t>, _Args...>)
+    :unique_handle<expected_zero<_T>, __deleter_t>{std::forward<_Args>(__args)...} {}
+};
+
+template <typename _T, typename __deleter_t>
+unique_handle_zero(_T, __deleter_t) -> unique_handle_zero<_T, __deleter_t>;
 
 
 // #if __cplusplus >= 202002L
-// template <std::default_initializable _T, concepts::deleter_for<_T> __deleter_t>
-// #else
-// template <typename _T, typename __deleter_t
-// , typename = std::enable_if_t<std::is_invocable_v<__deleter_t, _T&>>
-// #endif
-// >
-// constexpr auto make_unique_handle_zero(_T const& __value, __deleter_t&& __deleter) noexcept {
-//   return unique_handle_zero<_T, __deleter_t>{expected_zero<_T>{__value}, std::forward<__deleter_t>(__deleter)};
-// }
-//
-// #if __cplusplus >= 202002L
-// template <std::default_initializable _T, concepts::deleter_for<_T> __deleter_t>
-// #else
-// template <typename _T, typename __deleter_t
-// , typename = std::enable_if_t<std::is_invocable_v<__deleter_t, _T&>>
-// #endif
-// >
-// constexpr auto make_unique_handle_zero(_T&& __value, __deleter_t&& __deleter) noexcept {
-//   return unique_handle_zero<_T, __deleter_t>{expected_zero<_T>{std::move(__value)}, std::forward<__deleter_t>(__deleter)};
-// }
-
-// #if __cplusplus >= 202002L
-// template <typename _T, concepts::deleter_for<_T> __deleter_t>
-// constexpr auto make_unique_handle_zero(auto&&... __args)
-// noexcept(std::is_nothrow_constructible_v<_T, decltype(__args)...>)
+// template <typename _T, typename __deleter_t>
+// requires std::default_initializable<__deleter_t> && (!std::is_pointer_v<__deleter_t>)
 // #else
 // template <typename _T
 // , typename __deleter_t
-// , typename... _Args
-// // , typename = std::enable_if_t<std::is_constructible_v<_T, _Args...>>
-// > constexpr auto make_unique_handle_zero(_Args&&... __args)
-// noexcept(std::is_nothrow_constructible_v<_T, _Args...>)
-// // #endif
-// { return unique_handle_zero<_T, __deleter_t>{expected_zero<_T>{std::forward<decltype(__args)>(__args)...}}; }
+// , typename = std::enable_if_t<std::is_default_constructible_v<__deleter_t> && (!std::is_pointer_v<__deleter_t>)>
+// >
+// #endif
+// auto make_unique_handle_zero(auto&&... args) noexcept {
+//   
+// }
 
 }
 
+// using t = zero::unique_handle_zero<int, decltype([](int) {})>;
