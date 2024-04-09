@@ -79,7 +79,7 @@ struct [[nodiscard("Destructor will be called instantly")]] unique_handle {
   constexpr auto has_value() const noexcept
     -> bool { return _M_value_wrapper().has_value(); }
 
-  constexpr operator bool() const noexcept { return has_value(); }
+  explicit constexpr operator bool() const noexcept { return has_value(); }
 
   constexpr void leak() noexcept { _M_value_wrapper().reset(); }
 
